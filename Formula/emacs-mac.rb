@@ -17,7 +17,7 @@ class EmacsMac < Formula
       # patch for multi-tty support, see the following links for details
       # https://bitbucket.org/mituharu/emacs-mac/pull-requests/2/add-multi-tty-support-to-be-on-par-with/diff
       # https://ylluminarious.github.io/2019/05/23/how-to-fix-the-emacs-mac-port-for-multi-tty-access/
-      url "#{HOMEBREW_LIBRARY}/Taps/railwaycat/homebrew-emacsmacport/patches/emacs-mac-29-multi-tty.diff", using: CopyDownloadStrategy
+      url "#{HOMEBREW_LIBRARY}/Taps/Chaarlesss/homebrew-emacsmacport/patches/emacs-mac-29-multi-tty.diff", using: CopyDownloadStrategy
       sha256 "4412ce35689e3caf8e8b1d751bf3641b473cd3aef11889d3ecd682474bf204b0"
     end
   end
@@ -28,14 +28,19 @@ class EmacsMac < Formula
       # patch for multi-tty support, see the following links for details
       # https://bitbucket.org/mituharu/emacs-mac/pull-requests/2/add-multi-tty-support-to-be-on-par-with/diff
       # https://ylluminarious.github.io/2019/05/23/how-to-fix-the-emacs-mac-port-for-multi-tty-access/
-      url "#{HOMEBREW_LIBRARY}/Taps/railwaycat/homebrew-emacsmacport/patches/emacs-mac-29.2-rc-1-multi-tty.diff", using: CopyDownloadStrategy
+      url "#{HOMEBREW_LIBRARY}/Taps/Chaarlesss/homebrew-emacsmacport/patches/emacs-mac-29.2-rc-1-multi-tty.diff", using: CopyDownloadStrategy
       sha256 "4ede698c8f8f5509e3abf4e6a9c73e1dc3909b0f52f52ad4c33068bfaed3d1e4"
     end
   end
 
   patch do
-    url "#{HOMEBREW_LIBRARY}/Taps/railwaycat/homebrew-emacsmacport/patches/prefer-typo-ascender-descender-linegap.diff", using: CopyDownloadStrategy
+    url "#{HOMEBREW_LIBRARY}/Taps/Chaarlesss/homebrew-emacsmacport/patches/prefer-typo-ascender-descender-linegap.diff", using: CopyDownloadStrategy
     sha256 "318395d3869d3479da4593360bcb11a5df08b494b995287074d0d744ec562c17"
+  end
+
+  patch do
+    url "#{HOMEBREW_LIBRARY}/Taps/Chaarlesss/homebrew-emacsmacport/patches/emacs-mac-round-undecorated-frame.diff", using: CopyDownloadStrategy
+    sha256 "ff4c620c92e39fa24bfa791f7f74eac12aea86d2a3f865d2b383ebba3676e6e3"
   end
 
   option "without-modules", "Build without dynamic modules support"
@@ -80,7 +85,7 @@ class EmacsMac < Formula
     next if build.without? icon
 
     resource icon do
-      url "https://raw.githubusercontent.com/railwaycat/homebrew-emacsmacport/f7490351882f685a50fc6c21024a6af70daa8e0d/icons/#{icon}.icns"
+      url "https://raw.githubusercontent.com/Chaarlesss/homebrew-emacsmacport/f7490351882f685a50fc6c21024a6af70daa8e0d/icons/#{icon}.icns"
       sha256 iconsha
     end
   end
@@ -105,14 +110,14 @@ class EmacsMac < Formula
   if build.with? "no-title-bars"
     # odie "--with-no-title-bars patch not supported on --HEAD" if build.head?
     patch do
-      url "#{HOMEBREW_LIBRARY}/Taps/railwaycat/homebrew-emacsmacport/patches/emacs-26.2-rc1-mac-7.5-no-title-bar.patch", using: CopyDownloadStrategy
+      url "#{HOMEBREW_LIBRARY}/Taps/Chaarlesss/homebrew-emacsmacport/patches/emacs-26.2-rc1-mac-7.5-no-title-bar.patch", using: CopyDownloadStrategy
       sha256 "8319fd9568037c170f5990f608fb5bd82cd27346d1d605a83ac47d5a82da6066"
     end
   end
 
   if build.with? "natural-title-bar"
     patch do
-      url "#{HOMEBREW_LIBRARY}/Taps/railwaycat/homebrew-emacsmacport/patches/emacs-mac-title-bar-9.1.patch", using: CopyDownloadStrategy
+      url "#{HOMEBREW_LIBRARY}/Taps/Chaarlesss/homebrew-emacsmacport/patches/emacs-mac-title-bar-9.1.patch", using: CopyDownloadStrategy
       sha256 "297203d750c5c2d9f05aa68f1f47f1bda43419bf1b9ba63f8167625816c3a88d"
     end
   end
@@ -213,7 +218,7 @@ class EmacsMac < Formula
         #{prefix}
 
       To link the application to default App location and CLI scripts, please checkout:
-        https://github.com/railwaycat/homebrew-emacsmacport/blob/master/docs/emacs-start-helpers.md
+        https://github.com/Chaarlesss/homebrew-emacsmacport/blob/master/docs/emacs-start-helpers.md
 
       If you are using Doom Emacs, be sure to run doom sync:
         ~/.emacs.d/bin/doom sync

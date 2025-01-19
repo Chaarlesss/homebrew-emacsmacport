@@ -1,0 +1,177 @@
+diff --git a/src/frame.c b/src/frame.c
+index 37ba823c81..670955e5ae 100644
+--- a/src/frame.c
++++ b/src/frame.c
+@@ -974,6 +974,7 @@ make_frame (bool mini_p)
+   f->horizontal_scroll_bars = false;
+   f->want_fullscreen = FULLSCREEN_NONE;
+   f->undecorated = false;
++  f->undecorated_round = false;
+   f->no_special_glyphs = false;
+ #ifndef HAVE_NTGUI
+   f->override_redirect = false;
+@@ -3974,6 +3975,7 @@ static const struct frame_parm_table frame_parms[] =
+   {"tool-bar-position",		SYMBOL_INDEX (Qtool_bar_position)},
+   {"inhibit-double-buffering",  SYMBOL_INDEX (Qinhibit_double_buffering)},
+   {"undecorated",		SYMBOL_INDEX (Qundecorated)},
++  {"undecorated_round",         SYMBOL_INDEX (Qundecorated_round)},
+   {"parent-frame",		SYMBOL_INDEX (Qparent_frame)},
+   {"skip-taskbar",		SYMBOL_INDEX (Qskip_taskbar)},
+   {"no-focus-on-map",		SYMBOL_INDEX (Qno_focus_on_map)},
+@@ -6202,6 +6204,7 @@ syms_of_frame (void)
+   DEFSYM (Qicon, "icon");
+   DEFSYM (Qminibuffer, "minibuffer");
+   DEFSYM (Qundecorated, "undecorated");
++  DEFSYM (Qundecorated_round, "undecorated-round");
+   DEFSYM (Qno_special_glyphs, "no-special-glyphs");
+   DEFSYM (Qparent_frame, "parent-frame");
+   DEFSYM (Qskip_taskbar, "skip-taskbar");
+diff --git a/src/frame.h b/src/frame.h
+index 294ca0b613..c587c4f373 100644
+--- a/src/frame.h
++++ b/src/frame.h
+@@ -404,6 +404,9 @@ struct frame
+   /* True if this is an undecorated frame.  */
+   bool_bf undecorated : 1;
+ 
++  /* True if this is an undecorated frame with round corners.  */
++  bool_bf undecorated_round : 1;
++
+ #ifndef HAVE_NTGUI
+   /* True if this is an override_redirect frame.  */
+   bool_bf override_redirect : 1;
+@@ -1105,6 +1108,7 @@ default_pixels_per_inch_y (void)
+ 
+ #if defined (HAVE_WINDOW_SYSTEM)
+ #define FRAME_UNDECORATED(f) ((f)->undecorated)
++#define FRAME_UNDECORATED_ROUND(f) ((f)->undecorated_round)
+ #ifdef HAVE_NTGUI
+ #define FRAME_OVERRIDE_REDIRECT(f) ((void) (f), 0)
+ #else
+@@ -1131,6 +1135,7 @@ default_pixels_per_inch_y (void)
+ #endif
+ #else /* not HAVE_WINDOW_SYSTEM */
+ #define FRAME_UNDECORATED(f) ((void) (f), 0)
++#define FRAME_UNDECORATED_ROUND(f) ((void) (f), 0)
+ #define FRAME_OVERRIDE_REDIRECT(f) ((void) (f), 0)
+ #define FRAME_PARENT_FRAME(f) ((void) (f), NULL)
+ #define FRAME_SKIP_TASKBAR(f) ((void) (f), 0)
+diff --git a/src/macappkit.m b/src/macappkit.m
+index c4804ce380..fd577a5192 100644
+--- a/src/macappkit.m
++++ b/src/macappkit.m
+@@ -2512,7 +2512,7 @@ - (void)setupWindow
+ 
+   if (!FRAME_TOOLTIP_P (f))
+     {
+-      if (!self.shouldBeTitled)
++      if (!self.shouldBeTitled && !FRAME_UNDECORATED_ROUND (f))
+ 	windowStyle = NSWindowStyleMaskBorderless;
+       else
+ 	windowStyle = (NSWindowStyleMaskTitled | NSWindowStyleMaskClosable
+@@ -2522,6 +2522,11 @@ - (void)setupWindow
+   else
+     windowStyle = NSWindowStyleMaskBorderless;
+ 
++  if (FRAME_UNDECORATED_ROUND (f))
++    {
++      windowStyle |= NSFullSizeContentViewWindowMask;
++    }
++
+   if (oldWindow == nil)
+     {
+       NSScreen *screen = nil;
+@@ -2596,6 +2601,15 @@ - (void)setupWindow
+       hourglassWindow = nil;
+     }
+ 
++   if (FRAME_UNDECORATED_ROUND (f))
++    {
++      [window setTitlebarAppearsTransparent:YES];
++      [window setTitleVisibility:NSWindowTitleHidden];
++      [[window standardWindowButton:NSWindowCloseButton] setHidden:YES];
++      [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
++      [[window standardWindowButton:NSWindowZoomButton] setHidden:YES];
++    }
++
+   emacsWindow = window;
+   [window setDelegate:self];
+   [[window contentView] addSubview:emacsView];
+@@ -4198,7 +4212,7 @@ - (BOOL)shouldBeTitled
+   else if (windowManagerState & WM_STATE_FULLSCREEN)
+     return (windowManagerState & WM_STATE_DEDICATED_DESKTOP);
+   else
+-    return !FRAME_UNDECORATED (f);
++    return !FRAME_UNDECORATED (f) && !FRAME_UNDECORATED_ROUND (f);
+ }
+ 
+ - (BOOL)shouldHaveShadow
+diff --git a/src/macfns.c b/src/macfns.c
+index 417c54e61d..2aa5d31705 100644
+--- a/src/macfns.c
++++ b/src/macfns.c
+@@ -1162,6 +1162,19 @@ mac_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_val
+     }
+ }
+ 
++static void
++mac_set_undecorated_round (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
++{
++  if (!EQ (new_value, old_value))
++    {
++      FRAME_UNDECORATED_ROUND (f) = NILP (new_value) ? false : true;
++
++      block_input ();
++      mac_update_frame_window_style (f);
++      unblock_input ();
++    }
++}
++
+ static void
+ mac_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
+ {
+@@ -2299,7 +2312,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
+   Lisp_Object frame, tem;
+   Lisp_Object name;
+   bool minibuffer_only = false;
+-  bool undecorated = false, override_redirect = false;
++  bool undecorated = false, undecorated_round = false, override_redirect = false;
+   long window_prompting = 0;
+   specpdl_ref count = SPECPDL_INDEX ();
+   Lisp_Object display;
+@@ -2390,6 +2403,18 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
+   FRAME_UNDECORATED (f) = undecorated;
+   store_frame_param (f, Qundecorated, undecorated ? Qt : Qnil);
+ 
++  if (!NILP (tem = (gui_display_get_arg (dpyinfo,
++				        parms,
++					Qundecorated_round,
++					NULL,
++					NULL,
++				        RES_TYPE_BOOLEAN)))
++      && !(BASE_EQ (tem, Qunbound)))
++    undecorated_round = true;
++
++  FRAME_UNDECORATED_ROUND (f) = undecorated_round;
++  store_frame_param (f, Qundecorated_round, undecorated_round ? Qt : Qnil);
++
+   if (!NILP (tem = (gui_display_get_arg (dpyinfo,
+                                          parms,
+                                          Qoverride_redirect,
+@@ -2411,7 +2436,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
+   FRAME_FONTSET (f) = -1;
+   f->output_data.mac->white_relief.pixel = -1;
+   f->output_data.mac->black_relief.pixel = -1;
+-  FRAME_INTERNAL_TOOL_BAR_P (f) = undecorated || !NILP (parent_frame);
++  FRAME_INTERNAL_TOOL_BAR_P (f) = undecorated || undecorated_round || !NILP (parent_frame);
+ 
+   fset_icon_name (f, gui_display_get_arg (dpyinfo,
+                                           parms,
+@@ -5270,6 +5295,7 @@ frame_parm_handler mac_frame_parm_handlers[] =
+   0, /* mac_set_tool_bar_position, */
+   mac_set_inhibit_double_buffering,
+   mac_set_undecorated,
++  mac_set_undecorated_round,
+   mac_set_parent_frame,
+   mac_set_skip_taskbar,
+   mac_set_no_focus_on_map,

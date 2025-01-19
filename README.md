@@ -34,7 +34,7 @@ Please see the full feature list <a href="https://bitbucket.org/mituharu/emacs-m
 If you prefer to install with Homebrew, please enable this tap by:
 
 ```
-$ brew tap railwaycat/emacsmacport
+$ brew tap Chaarlesss/emacsmacport
 ```
 
 #### Formula

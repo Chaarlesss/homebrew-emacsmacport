@@ -57,18 +57,9 @@ index 294ca0b613..c587c4f373 100644
  #define FRAME_PARENT_FRAME(f) ((void) (f), NULL)
  #define FRAME_SKIP_TASKBAR(f) ((void) (f), 0)
 diff --git a/src/macappkit.m b/src/macappkit.m
-index c4804ce380..fd577a5192 100644
+index c4804ce380..6c83a0abc4 100644
 --- a/src/macappkit.m
 +++ b/src/macappkit.m
-@@ -2512,7 +2512,7 @@ - (void)setupWindow
- 
-   if (!FRAME_TOOLTIP_P (f))
-     {
--      if (!self.shouldBeTitled)
-+      if (!self.shouldBeTitled && !FRAME_UNDECORATED_ROUND (f))
- 	windowStyle = NSWindowStyleMaskBorderless;
-       else
- 	windowStyle = (NSWindowStyleMaskTitled | NSWindowStyleMaskClosable
 @@ -2522,6 +2522,11 @@ - (void)setupWindow
    else
      windowStyle = NSWindowStyleMaskBorderless;
@@ -97,15 +88,6 @@ index c4804ce380..fd577a5192 100644
    emacsWindow = window;
    [window setDelegate:self];
    [[window contentView] addSubview:emacsView];
-@@ -4198,7 +4212,7 @@ - (BOOL)shouldBeTitled
-   else if (windowManagerState & WM_STATE_FULLSCREEN)
-     return (windowManagerState & WM_STATE_DEDICATED_DESKTOP);
-   else
--    return !FRAME_UNDECORATED (f);
-+    return !FRAME_UNDECORATED (f) && !FRAME_UNDECORATED_ROUND (f);
- }
- 
- - (BOOL)shouldHaveShadow
 diff --git a/src/macfns.c b/src/macfns.c
 index 417c54e61d..2aa5d31705 100644
 --- a/src/macfns.c

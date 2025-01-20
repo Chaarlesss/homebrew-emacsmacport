@@ -40,7 +40,7 @@ class EmacsMac < Formula
 
   patch do
     url "#{HOMEBREW_LIBRARY}/Taps/Chaarlesss/homebrew-emacsmacport/patches/emacs-mac-round-undecorated-frame.diff", using: CopyDownloadStrategy
-    sha256 "ff4c620c92e39fa24bfa791f7f74eac12aea86d2a3f865d2b383ebba3676e6e3"
+    sha256 "621f997a4cb50815373dea95474429c8c2b2ff9523a9d03aaa63c3b3b9c6c086"
   end
 
   option "without-modules", "Build without dynamic modules support"

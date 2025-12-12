@@ -30,10 +30,10 @@ class EmacsMacAT29 < Formula
     sha256 "318395d3869d3479da4593360bcb11a5df08b494b995287074d0d744ec562c17"
   end
 
-  patch do
-    url (@@urlResolver.patch_url "emacs-mac-round-undecorated-frame"), using: CopyDownloadStrategy
-    sha256 "621f997a4cb50815373dea95474429c8c2b2ff9523a9d03aaa63c3b3b9c6c086"
-  end
+#  patch do
+#    url (@@urlResolver.patch_url "emacs-mac-round-undecorated-frame"), using: CopyDownloadStrategy
+#    sha256 "621f997a4cb50815373dea95474429c8c2b2ff9523a9d03aaa63c3b3b9c6c086"
+#  end
 
   option "without-modules", "Build without dynamic modules support"
   option "with-ctags", "Don't remove the ctags executable that emacs provides"
@@ -71,7 +71,7 @@ class EmacsMacAT29 < Formula
   depends_on "texinfo"
   depends_on "jansson" => :recommended
   depends_on "libxml2" => :recommended
-  depends_on "tree-sitter" => :recommended
+  depends_on "tree-sitter@0.25" => :recommended
   depends_on "dbus" => :optional
   depends_on "glib" => :optional
   depends_on "imagemagick" => :optional
